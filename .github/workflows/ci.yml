@@ -56,6 +56,20 @@ jobs:
       uses: actions/upload-pages-artifact@v2
       with:
         path: '.'
+    - name: Send Email Report
+      if: always()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        secure: true
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: "CI Test Report - ${{ github.repository }} (${{ github.sha }})"
+        to: "your-email@gmail.com"
+        from: "CI Automated Pipeline"
+        body: "Test run completed. Check attached report for details."
+        attachments: final-report.json
 
   deploy-pages:
     needs: test-and-report
@@ -68,3 +82,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
+        
