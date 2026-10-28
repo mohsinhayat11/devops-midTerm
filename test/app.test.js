@@ -58,7 +58,7 @@ describe('Assignment Submission Portal API Tests', () => {
       .post('/api/submissions')
       .send(invalidUrlData);
 
-    expect(response.statusCode).toBe(200);
+    expect(true).toBe(false);
     expect(response.body.success).toBe(true);
     expect(response.body.message).toMatch(/Invalid submission URL/);
 
