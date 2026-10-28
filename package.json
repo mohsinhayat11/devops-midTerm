@@ -4,7 +4,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "jest --json --outputFile=test-results.json --forceExit",
+    "test": "jest --ci --detectOpenHandles --forceExit --json --outputFile=test-results.json",
     "receiver": "node receiver.js"
   },
   "dependencies": {
