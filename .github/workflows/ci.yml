@@ -54,6 +54,9 @@ jobs:
           -H "User-Agent: Mozilla/5.0" \
           -d @final-report.json || true
 
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+
     - name: Upload Static Frontend Artifact for Pages
       if: success()
       uses: actions/upload-pages-artifact@v3
@@ -72,17 +75,20 @@ jobs:
         subject: "CI Test Report - ${{ github.repository }} (${{ github.sha }})"
         to: "mohsinhayat11@gmail.com"
         from: "CI Automated Pipeline"
-        body: "Test run completed. Please find the attached JSON test report."
+        body: "Test run completed successfully. Please find attached JSON report."
         attachments: final-report.json
 
   deploy-pages:
     needs: test-and-report
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v3
+        uses: actions/deploy-pages@v4
