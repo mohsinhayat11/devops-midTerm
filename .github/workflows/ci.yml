@@ -25,29 +25,31 @@ jobs:
       - name: Run Automated Tests
         id: run_tests
         continue-on-error: true
-        run: |
-          npm test
+        run: npx jest --json --outputFile=test-results.json
 
       - name: Construct and Send Report to Localhost
         if: always()
         run: |
-          # Read raw Jest test output
-          TEST_JSON=$(cat test-results.json)
-          
-          # Extract metadata and stats using node inline script
           node -e '
             const fs = require("fs");
-            const rawResults = JSON.parse(fs.readFileSync("test-results.json", "utf8"));
+            let rawResults = {};
+            try {
+              if (fs.existsSync("test-results.json")) {
+                rawResults = JSON.parse(fs.readFileSync("test-results.json", "utf8"));
+              }
+            } catch (e) {
+              console.error("Error reading test-results.json", e);
+            }
             
             const totalTests = rawResults.numTotalTests || 0;
             const passedTests = rawResults.numPassedTests || 0;
             const failedTests = rawResults.numFailedTests || 0;
-            const overallStatus = rawResults.success ? "PASSED" : "FAILED";
+            const overallStatus = (rawResults.success && totalTests > 0) ? "PASSED" : "FAILED";
             
-            const individualResults = (rawResults.testResults[0]?.assertionResults || []).map(t => ({
+            const individualResults = (rawResults.testResults?.[0]?.assertionResults || []).map(t => ({
               name: t.title,
               status: t.status,
-              failureMessage: t.failureMessages.length > 0 ? t.failureMessages.join("\n") : null
+              failureMessage: t.failureMessages?.length > 0 ? t.failureMessages.join("\n") : null
             }));
 
             const payload = {
@@ -64,13 +66,15 @@ jobs:
             };
 
             fs.writeFileSync("final-report.json", JSON.stringify(payload, null, 2));
+            console.log("Constructed Payload:", JSON.stringify(payload, null, 2));
           '
 
-          # Send Payload to Local Receiver via localtunnel URL
-          curl -X POST "https://silent-berries-like.loca.lt/webhook" \
+          # Send Payload with bypass headers to localtunnel
+          curl -s -X POST "https://silent-berries-like.loca.lt/webhook" \
             -H "Content-Type: application/json" \
-            -H "Bypass-Tunnel-Remainder: true" \
-            -d @final-report.json
+            -H "bypass-tunnel-reminder: true" \
+            -H "User-Agent: Mozilla/5.0" \
+            -d @final-report.json || true
 
       - name: Check Final CI Status
         run: |
