@@ -1,0 +1,28 @@
+{
+  "repositoryName": "mohsinhayat11/devops-midTerm",
+  "branch": "main",
+  "commitSHA": "4931779c2c33293dc9587b63de709b1c9e247cdd",
+  "pipelineRunId": "40704181964",
+  "timestamp": "2026-10-28T14:15:50.294Z",
+  "totalTests": 3,
+  "passedTests": 3,
+  "failedTests": 0,
+  "overallStatus": "PASSED",
+  "testDetails": [
+    {
+      "name": "should save the submission and return success when all details and URL are valid",
+      "status": "passed",
+      "failureMessage": null
+    },
+    {
+      "name": "should reject the submission with a validation message if registration number is missing",
+      "status": "passed",
+      "failureMessage": null
+    },
+    {
+      "name": "should reject the submission and not save it if the URL is invalid",
+      "status": "passed",
+      "failureMessage": null
+    }
+  ]
+}
