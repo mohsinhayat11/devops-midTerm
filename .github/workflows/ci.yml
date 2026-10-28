@@ -25,7 +25,7 @@ jobs:
       - name: Run Automated Tests
         id: run_tests
         continue-on-error: true
-        run: npx jest --json --outputFile=test-results.json
+        run: npm test
 
       - name: Construct and Send Report to Localhost
         if: always()
@@ -69,7 +69,7 @@ jobs:
             console.log("Constructed Payload:", JSON.stringify(payload, null, 2));
           '
 
-          # Send Payload with bypass headers to localtunnel
+          # Send Payload to localtunnel
           curl -s -X POST "https://silent-berries-like.loca.lt/webhook" \
             -H "Content-Type: application/json" \
             -H "bypass-tunnel-reminder: true" \

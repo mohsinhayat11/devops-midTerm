@@ -4,7 +4,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "jest --json --outputFile=test-results.json",
+    "test": "jest --json --outputFile=test-results.json --forceExit",
     "receiver": "node receiver.js"
   },
   "dependencies": {

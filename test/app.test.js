@@ -1,5 +1,6 @@
 const request = require('supertest');
-const app = require('../app'); // Hamari main app file
+const path = require('path');
+const app = require(path.join(__dirname, '../app.js')); // Hamari main app file
 
 describe('Assignment Submission Portal API Tests', () => {
 
