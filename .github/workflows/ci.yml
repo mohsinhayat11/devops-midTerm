@@ -15,21 +15,26 @@ jobs:
 
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 18
 
     - name: Install Dependencies
-      run: npm ci
+      run: |
+        cd assignment-portal
+        npm ci
 
     - name: Run Jest Unit Tests
-      run: npx jest --ci --json --outputFile=test-results.json || true
+      run: |
+        cd assignment-portal
+        npx jest --ci --json --outputFile=test-results.json || true
 
     - name: Generate JSON Payload & Send to Local Receiver
       run: |
+        cd assignment-portal
         node -e '
           const fs = require("fs");
           const results = JSON.parse(fs.readFileSync("test-results.json"));
@@ -53,9 +58,10 @@ jobs:
 
     - name: Upload Static Frontend Artifact for Pages
       if: success()
-      uses: actions/upload-pages-artifact@v2
+      uses: actions/upload-pages-artifact@v3
       with:
-        path: '.'
+        path: './assignment-portal'
+
     - name: Send Email Report
       if: always()
       uses: dawidd6/action-send-mail@v3
@@ -68,8 +74,8 @@ jobs:
         subject: "CI Test Report - ${{ github.repository }} (${{ github.sha }})"
         to: "your-email@gmail.com"
         from: "CI Automated Pipeline"
-        body: "Test run completed. Check attached report for details."
-        attachments: final-report.json
+        body: "Test run completed successfully. Check attached report."
+        attachments: ./assignment-portal/final-report.json
 
   deploy-pages:
     needs: test-and-report
@@ -81,5 +87,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
-        
+        uses: actions/deploy-pages@v3
