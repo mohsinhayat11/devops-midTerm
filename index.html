@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assignment Submission Portal</title>
+  <!-- Bootstrap 5 CSS CDN for modern styling -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #f4f7f6; padding-top: 30px; padding-bottom: 50px; }
+    .card { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .table-container { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="text-center mb-4">
+      <h2 class="text-primary fw-bold">CSC418 DevOps</h2>
+      <h4 class="text-secondary">Assignment Submission Portal</h4>
+    </div>
+
+    <div class="row justify-content-center">
+      <!-- Submission Form Section -->
+      <div class="col-md-5 mb-4">
+        <div class="card p-4">
+          <h5 class="card-title mb-3">Submit Your Assignment</h5>
+          
+          <div id="alertBox" class="alert" style="display: none;" role="alert"></div>
+
+          <form id="submissionForm">
+            <div class="mb-3">
+              <label for="name" class="form-label fw-bold">Student Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="name" placeholder="e.g. Ali Khan" required>
+            </div>
+            
+            <div class="mb-3">
+              <label for="regNo" class="form-label fw-bold">Registration Number <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="regNo" placeholder="e.g. SP21-BCS-001" required>
+            </div>
+            
+            <div class="mb-3">
+              <label for="title" class="form-label fw-bold">Assignment Title <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="title" placeholder="e.g. Lab Midterm" required>
+            </div>
+            
+            <div class="mb-4">
+              <label for="submissionUrl" class="form-label fw-bold">Submission URL <span class="text-danger">*</span></label>
+              <input type="url" class="form-control" id="submissionUrl" placeholder="https://github.com/..." required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-100 fw-bold">Submit Assignment</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Saved Submissions Section -->
+      <div class="col-md-7">
+        <div class="table-container">
+          <h5 class="mb-3">Recent Submissions</h5>
+          <div class="table-responsive">
+            <table class="table table-hover table-bordered align-middle">
+              <thead class="table-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Reg No</th>
+                  <th>Title</th>
+                  <th>Link</th>
+                </tr>
+              </thead>
+              <tbody id="submissionsTableBody">
+                <!-- Dynamic Data Will Appear Here -->
+                <tr>
+                  <td colspan="5" class="text-center text-muted">No submissions yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('submissionForm');
+    const alertBox = document.getElementById('alertBox');
+    const tableBody = document.getElementById('submissionsTableBody');
+
+    const API_URL = 'http://localhost:3000/api/submissions';
+
+    // Fetch and display submissions
+    async function loadSubmissions() {
+      try {
+        const res = await fetch(API_URL);
+        const result = await res.json();
+        
+        if (result.success && result.data.length > 0) {
+          tableBody.innerHTML = '';
+          result.data.forEach(sub => {
+            const row = `<tr>
+              <td>${sub.id}</td>
+              <td>${sub.name}</td>
+              <td>${sub.regNo}</td>
+              <td>${sub.title}</td>
+              <td><a href="${sub.submissionUrl}" class="btn btn-sm btn-outline-primary" target="_blank">View</a></td>
+            </tr>`;
+            tableBody.innerHTML += row;
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching submissions:', err);
+      }
+    }
+
+    // Handle form submission
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      alertBox.style.display = 'none';
+
+      const payload = {
+        name: document.getElementById('name').value,
+        regNo: document.getElementById('regNo').value,
+        title: document.getElementById('title').value,
+        submissionUrl: document.getElementById('submissionUrl').value
+      };
+
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          alertBox.className = 'alert alert-success';
+          alertBox.innerText = data.message;
+          alertBox.style.display = 'block';
+          form.reset();
+          loadSubmissions(); // Refresh the table
+        } else {
+          alertBox.className = 'alert alert-danger';
+          alertBox.innerText = data.message || 'Submission failed.';
+          alertBox.style.display = 'block';
+        }
+      } catch (err) {
+        alertBox.className = 'alert alert-danger';
+        alertBox.innerText = 'Server error. Please ensure backend is running.';
+        alertBox.style.display = 'block';
+      }
+    });
+
+    // Initial Load
+    loadSubmissions();
+  </script>
+</body>
+</html>

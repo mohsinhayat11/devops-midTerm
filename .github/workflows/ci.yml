@@ -1,0 +1,80 @@
+name: CI Test and Local Reporting Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-and-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Automated Tests
+        id: run_tests
+        continue-on-error: true
+        run: |
+          npm test
+
+      - name: Construct and Send Report to Localhost
+        if: always()
+        run: |
+          # Read raw Jest test output
+          TEST_JSON=$(cat test-results.json)
+          
+          # Extract metadata and stats using node inline script
+          node -e '
+            const fs = require("fs");
+            const rawResults = JSON.parse(fs.readFileSync("test-results.json", "utf8"));
+            
+            const totalTests = rawResults.numTotalTests || 0;
+            const passedTests = rawResults.numPassedTests || 0;
+            const failedTests = rawResults.numFailedTests || 0;
+            const overallStatus = rawResults.success ? "PASSED" : "FAILED";
+            
+            const individualResults = (rawResults.testResults[0]?.assertionResults || []).map(t => ({
+              name: t.title,
+              status: t.status,
+              failureMessage: t.failureMessages.length > 0 ? t.failureMessages.join("\n") : null
+            }));
+
+            const payload = {
+              repositoryName: "${{ github.repository }}",
+              branch: "${{ github.ref_name }}",
+              commitSHA: "${{ github.sha }}",
+              pipelineRunId: "${{ github.run_id }}",
+              timestamp: new Date().toISOString(),
+              totalTests: totalTests,
+              passedTests: passedTests,
+              failedTests: failedTests,
+              overallStatus: overallStatus,
+              testDetails: individualResults
+            };
+
+            fs.writeFileSync("final-report.json", JSON.stringify(payload, null, 2));
+          '
+
+          # Send Payload to Local Receiver via localtunnel URL
+          curl -X POST "https://silent-berries-like.loca.lt/webhook" \
+            -H "Content-Type: application/json" \
+            -H "Bypass-Tunnel-Remainder: true" \
+            -d @final-report.json
+
+      - name: Check Final CI Status
+        run: |
+          if [ "${{ steps.run_tests.outcome }}" != "success" ]; then
+            echo "Automated tests failed! Failing CI build..."
+            exit 1
+          fi
